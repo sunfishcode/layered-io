@@ -16,7 +16,7 @@ This crate defines [`ReadLayered`] and [`WriteLayered`] traits which extend
 [`std::io::Read`] and [`std::io::Write`] with additional functionality
 useful for performing I/O through layers of buffering and translation.
 
-And it defines [`LayeredReader`], [`LayeredWriter`], and [`LayeredInteractor`]
+And it defines [`LayeredReader`], [`LayeredWriter`], and [`LayeredDuplexer`]
 types which implement [`ReadLayered`], [`WriteLayered`], and both,
 respectively, by wrapping implementations of [`std::io::Read`],
 [`std::io::Write`], and both, respectively.
@@ -27,4 +27,4 @@ respectively, by wrapping implementations of [`std::io::Read`],
 [`std::io::Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
 [`LayeredReader`]: https://docs.rs/layered-io/latest/layered_io/struct.LayeredReader.html
 [`LayeredWriter`]: https://docs.rs/layered-io/latest/layered_io/struct.LayeredWriter.html
-[`LayeredInteractor`]: https://docs.rs/layered-io/latest/layered_io/struct.LayeredInteractor.html
+[`LayeredDuplexer`]: https://docs.rs/layered-io/latest/layered_io/struct.LayeredDuplexer.html
