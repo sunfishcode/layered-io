@@ -29,7 +29,8 @@ pub trait WriteLayered: Write + Bufferable {
     }
 }
 
-/// Default implementation of `Write::write_vectored`, in terms of `Write::write`.
+/// Default implementation of [`Write::write_vectored`], in terms of
+/// [`Write::write`].
 pub fn default_write_vectored<Inner: Write + ?Sized>(
     inner: &mut Inner,
     bufs: &[IoSlice<'_>],
@@ -49,7 +50,8 @@ pub fn default_is_write_vectored<Inner: Write + ?Sized>(_inner: &Inner) -> bool 
     false
 }
 
-/// Default implementation of `Write::write_all`, in terms of `Write::write`.
+/// Default implementation of [`Write::write_all`], in terms of
+/// [`Write::write`].
 #[allow(clippy::indexing_slicing)]
 pub fn default_write_all<Inner: Write + ?Sized>(
     inner: &mut Inner,
@@ -71,8 +73,8 @@ pub fn default_write_all<Inner: Write + ?Sized>(
     Ok(())
 }
 
-/// Default implementation of `Write::write_all_vectored`, in terms of
-/// `Write::write_vectored`.
+/// Default implementation of [`Write::write_all_vectored`], in terms of
+/// [`Write::write_vectored`].
 #[cfg(write_all_vectored)]
 pub fn default_write_all_vectored<Inner: Write + ?Sized>(
     inner: &mut Inner,
@@ -132,35 +134,11 @@ impl WriteLayered for std::io::Cursor<Vec<u8>> {
     }
 }
 
-impl Bufferable for std::io::Cursor<Vec<u8>> {
-    #[inline]
-    fn abandon(&mut self) {
-        self.set_position(self.get_ref().len().try_into().unwrap())
-    }
-
-    #[inline]
-    fn suggested_buffer_size(&self) -> usize {
-        0
-    }
-}
-
 impl WriteLayered for std::io::Cursor<Box<[u8]>> {
     #[inline]
     fn close(&mut self) -> io::Result<()> {
         self.set_position(self.get_ref().len().try_into().unwrap());
         Ok(())
-    }
-}
-
-impl Bufferable for std::io::Cursor<Box<[u8]>> {
-    #[inline]
-    fn abandon(&mut self) {
-        self.set_position(self.get_ref().len().try_into().unwrap())
-    }
-
-    #[inline]
-    fn suggested_buffer_size(&self) -> usize {
-        0
     }
 }
 
@@ -172,35 +150,11 @@ impl WriteLayered for std::io::Cursor<&mut Vec<u8>> {
     }
 }
 
-impl Bufferable for std::io::Cursor<&mut Vec<u8>> {
-    #[inline]
-    fn abandon(&mut self) {
-        self.set_position(self.get_ref().len().try_into().unwrap())
-    }
-
-    #[inline]
-    fn suggested_buffer_size(&self) -> usize {
-        0
-    }
-}
-
 impl WriteLayered for std::io::Cursor<&mut [u8]> {
     #[inline]
     fn close(&mut self) -> io::Result<()> {
         self.set_position(self.get_ref().len().try_into().unwrap());
         Ok(())
-    }
-}
-
-impl Bufferable for std::io::Cursor<&mut [u8]> {
-    #[inline]
-    fn abandon(&mut self) {
-        self.set_position(self.get_ref().len().try_into().unwrap())
-    }
-
-    #[inline]
-    fn suggested_buffer_size(&self) -> usize {
-        0
     }
 }
 

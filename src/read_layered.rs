@@ -41,7 +41,7 @@ pub fn default_read<Inner: ReadLayered + ?Sized>(
     inner.read_with_status(buf).and_then(to_std_io_read_result)
 }
 
-/// Default implementation of `Read::read_vectored` in terms of
+/// Default implementation of [`Read::read_vectored`] in terms of
 /// [`ReadLayered::read_vectored_with_status`].
 pub fn default_read_vectored<Inner: ReadLayered + ?Sized>(
     inner: &mut Inner,
@@ -52,7 +52,7 @@ pub fn default_read_vectored<Inner: ReadLayered + ?Sized>(
         .and_then(to_std_io_read_result)
 }
 
-/// Default implementation of `Read::read_to_end` in terms of
+/// Default implementation of [`Read::read_to_end`] in terms of
 /// [`ReadLayered::read_with_status`].
 #[allow(clippy::indexing_slicing)]
 pub fn default_read_to_end<Inner: ReadLayered + ?Sized>(
@@ -143,8 +143,8 @@ pub fn default_read_exact_using_status<Inner: ReadLayered + ?Sized>(
     }
 }
 
-/// Default implementation of `ReadLayered::read_vectored_with_status` in terms of
-/// [`ReadLayered::read_with_status`].
+/// Default implementation of [`ReadLayered::read_vectored_with_status`] in
+/// terms of [`ReadLayered::read_with_status`].
 pub fn default_read_vectored_with_status<Inner: ReadLayered + ?Sized>(
     inner: &mut Inner,
     bufs: &mut [IoSliceMut<'_>],
@@ -164,9 +164,9 @@ pub fn default_is_read_vectored<Inner: ReadLayered + ?Sized>(_inner: &Inner) -> 
 }
 
 /// Translate from `read_with_status`'s return value with independent size and
-/// status to a `std::io::read` return value where 0 is special-cased to mean
-/// end-of-stream, an `io::ErrorKind::Interrupted` error is used to indicate
-/// a zero-length read, and pushes are not reported.
+/// status to a [`std::io::Read::read`] return value where 0 is special-cased
+/// to mean end-of-stream, an `io::ErrorKind::Interrupted` error is used to
+/// indicate a zero-length read, and pushes are not reported.
 pub fn to_std_io_read_result(size_and_status: (usize, Status)) -> io::Result<usize> {
     match size_and_status {
         (0, Status::Open(_)) => Err(io::Error::new(
@@ -197,18 +197,6 @@ impl<R: ReadLayered> ReadLayered for Box<R> {
     }
 }
 
-impl<B: Bufferable> Bufferable for Box<B> {
-    #[inline]
-    fn abandon(&mut self) {
-        self.as_mut().abandon()
-    }
-
-    #[inline]
-    fn suggested_buffer_size(&self) -> usize {
-        self.as_ref().suggested_buffer_size()
-    }
-}
-
 impl<R: ReadLayered> ReadLayered for &mut R {
     #[inline]
     fn read_with_status(&mut self, buf: &mut [u8]) -> io::Result<(usize, Status)> {
@@ -226,17 +214,5 @@ impl<R: ReadLayered> ReadLayered for &mut R {
     #[inline]
     fn minimum_buffer_size(&self) -> usize {
         (**self).minimum_buffer_size()
-    }
-}
-
-impl<B: Bufferable> Bufferable for &mut B {
-    #[inline]
-    fn abandon(&mut self) {
-        (**self).abandon()
-    }
-
-    #[inline]
-    fn suggested_buffer_size(&self) -> usize {
-        (**self).suggested_buffer_size()
     }
 }
