@@ -2,18 +2,17 @@ use crate::{
     default_read, default_read_exact_using_status, default_read_to_end, default_read_to_string,
     default_read_vectored, Bufferable, ReadLayered, Status,
 };
-#[cfg(unix)]
-use std::os::unix::io::{AsRawFd, RawFd};
-#[cfg(target_os = "wasi")]
-use std::os::wasi::io::{AsRawFd, RawFd};
 use std::{
     fmt,
     io::{self, IoSliceMut, Read},
 };
 #[cfg(feature = "terminal-io")]
 use terminal_io::ReadTerminal;
+#[cfg(not(windows))]
+use unsafe_io::os::posish::{AsRawFd, RawFd};
 #[cfg(windows)]
-use unsafe_io::{AsRawHandleOrSocket, RawHandleOrSocket};
+use unsafe_io::os::windows::{AsRawHandleOrSocket, RawHandleOrSocket};
+use unsafe_io::OwnsRaw;
 
 /// Adapts an `Read` to implement `ReadLayered`.
 pub struct LayeredReader<Inner> {
@@ -39,7 +38,8 @@ impl<Inner: ReadTerminal> LayeredReader<Inner> {
 }
 
 impl<Inner: Read> LayeredReader<Inner> {
-    /// Construct a new `LayeredReader` which wraps `inner` with default settings.
+    /// Construct a new `LayeredReader` which wraps `inner` with default
+    /// settings.
     pub fn new(inner: Inner) -> Self {
         Self {
             inner: Some(inner),
@@ -48,9 +48,9 @@ impl<Inner: Read> LayeredReader<Inner> {
         }
     }
 
-    /// Construct a new `LayeredReader` which wraps `inner`. When `inner` reports
-    /// end of stream (by returning 0), report a push but keep the stream open
-    /// and continue to read data on it.
+    /// Construct a new `LayeredReader` which wraps `inner`. When `inner`
+    /// reports end of stream (by returning 0), report a push but keep the
+    /// stream open and continue to read data on it.
     ///
     /// For example, when reading a file, when the reader reaches the end of
     /// the file it will report it, but consumers may wish to continue reading
@@ -220,7 +220,7 @@ impl<RW: terminal_io::ReadTerminal> terminal_io::ReadTerminal for LayeredReader<
 }
 
 #[cfg(not(windows))]
-impl<Inner: Read + AsRawFd> AsRawFd for LayeredReader<Inner> {
+impl<Inner: Read + AsRawFd + OwnsRaw> AsRawFd for LayeredReader<Inner> {
     #[inline]
     fn as_raw_fd(&self) -> RawFd {
         match &self.inner {
@@ -231,7 +231,7 @@ impl<Inner: Read + AsRawFd> AsRawFd for LayeredReader<Inner> {
 }
 
 #[cfg(windows)]
-impl<Inner: Read + AsRawHandleOrSocket> AsRawHandleOrSocket for LayeredReader<Inner> {
+impl<Inner: Read + AsRawHandleOrSocket + OwnsRaw> AsRawHandleOrSocket for LayeredReader<Inner> {
     #[inline]
     fn as_raw_handle_or_socket(&self) -> RawHandleOrSocket {
         match &self.inner {
@@ -240,6 +240,9 @@ impl<Inner: Read + AsRawHandleOrSocket> AsRawHandleOrSocket for LayeredReader<In
         }
     }
 }
+
+// Safety: `LayeredReader` implements `OwnsRaw` if `Inner` does.
+unsafe impl<Inner: Read + OwnsRaw> OwnsRaw for LayeredReader<Inner> {}
 
 impl<Inner: fmt::Debug> fmt::Debug for LayeredReader<Inner> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

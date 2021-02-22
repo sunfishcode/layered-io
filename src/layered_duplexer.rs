@@ -3,10 +3,6 @@ use crate::{
     default_read_vectored, Bufferable, ReadLayered, Status, WriteLayered,
 };
 use duplex::Duplex;
-#[cfg(unix)]
-use std::os::unix::io::RawFd;
-#[cfg(target_os = "wasi")]
-use std::os::wasi::io::RawFd;
 use std::{
     fmt::{self, Arguments},
     io::{self, IoSlice, IoSliceMut, Read, Write},
@@ -14,9 +10,10 @@ use std::{
 #[cfg(feature = "terminal-io")]
 use terminal_io::DuplexTerminal;
 #[cfg(not(windows))]
-use unsafe_io::AsRawReadWriteFd;
+use unsafe_io::os::posish::{AsRawReadWriteFd, RawFd};
 #[cfg(windows)]
-use unsafe_io::{AsRawReadWriteHandleOrSocket, RawHandleOrSocket};
+use unsafe_io::os::windows::{AsRawReadWriteHandleOrSocket, RawHandleOrSocket};
+use unsafe_io::OwnsRaw;
 
 /// Adapts an `Read` + `Write` to implement `DuplexLayered`.
 pub struct LayeredDuplexer<Inner> {
@@ -42,7 +39,8 @@ impl<Inner: DuplexTerminal> LayeredDuplexer<Inner> {
 }
 
 impl<Inner: Read + Write> LayeredDuplexer<Inner> {
-    /// Construct a new `LayeredDuplexer` which wraps `inner` with default settings.
+    /// Construct a new `LayeredDuplexer` which wraps `inner` with default
+    /// settings.
     pub fn new(inner: Inner) -> Self {
         Self {
             inner: Some(inner),
@@ -66,8 +64,8 @@ impl<Inner: Read + Write> LayeredDuplexer<Inner> {
         }
     }
 
-    /// Construct a new `LayeredDuplexer` which wraps an `inner` which reads its
-    /// input line-by-line, such as stdin on a terminal.
+    /// Construct a new `LayeredDuplexer` which wraps an `inner` which reads
+    /// its input line-by-line, such as stdin on a terminal.
     pub fn line_by_line(inner: Inner) -> Self {
         Self {
             inner: Some(inner),
@@ -369,6 +367,9 @@ impl<Inner: Duplex + AsRawReadWriteHandleOrSocket> AsRawReadWriteHandleOrSocket
         }
     }
 }
+
+// Safety: `LayeredDuplexer` implements `OwnsRaw` if `Inner` does.
+unsafe impl<Inner: Duplex + OwnsRaw> OwnsRaw for LayeredDuplexer<Inner> {}
 
 impl<Inner: fmt::Debug> fmt::Debug for LayeredDuplexer<Inner> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

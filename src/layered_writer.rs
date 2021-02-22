@@ -1,14 +1,13 @@
 use crate::{Bufferable, WriteLayered};
-#[cfg(unix)]
-use std::os::unix::io::{AsRawFd, RawFd};
-#[cfg(target_os = "wasi")]
-use std::os::wasi::io::{AsRawFd, RawFd};
 use std::{
     fmt::{self, Arguments},
     io::{self, IoSlice, Write},
 };
+#[cfg(not(windows))]
+use unsafe_io::os::posish::{AsRawFd, RawFd};
 #[cfg(windows)]
-use unsafe_io::{AsRawHandleOrSocket, RawHandleOrSocket};
+use unsafe_io::os::windows::{AsRawHandleOrSocket, RawHandleOrSocket};
+use unsafe_io::OwnsRaw;
 
 /// Adapts a [`std::io::Write`] to implement [`WriteLayered`].
 pub struct LayeredWriter<Inner> {
@@ -177,6 +176,9 @@ impl<Inner: Write + AsRawHandleOrSocket> AsRawHandleOrSocket for LayeredWriter<I
         }
     }
 }
+
+// Safety: `LayeredWriter` implements `OwnsRaw` if `Inner` does.
+unsafe impl<Inner: Write + OwnsRaw> OwnsRaw for LayeredWriter<Inner> {}
 
 impl<Inner: fmt::Debug> fmt::Debug for LayeredWriter<Inner> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

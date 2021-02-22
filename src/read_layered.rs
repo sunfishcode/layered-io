@@ -110,8 +110,8 @@ pub fn default_read_to_string<Inner: ReadLayered + ?Sized>(
     Ok(size)
 }
 
-/// Default implementation of [`ReadLayered::read_exact_using_status`] in terms of
-/// [`ReadLayered::read_with_status`].
+/// Default implementation of [`ReadLayered::read_exact_using_status`] in terms
+/// of [`ReadLayered::read_with_status`].
 #[allow(clippy::indexing_slicing)]
 pub fn default_read_exact_using_status<Inner: ReadLayered + ?Sized>(
     inner: &mut Inner,

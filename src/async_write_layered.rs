@@ -14,7 +14,8 @@ pub trait AsyncWriteLayered: AsyncWrite + Bufferable {
     /// Like [`Write::flush`], but has a status parameter describing
     /// the future of the stream:
     ///  - `Status::Ok(Activity::Active)`: do nothing
-    ///  - `Status::Ok(Activity::Push)`: flush any buffers and transmit all data
+    ///  - `Status::Ok(Activity::Push)`: flush any buffers and transmit all
+    ///    data
     ///  - `Status::End`: flush any buffers and declare the end of the stream
     ///
     /// Passing `Status::Ok(Activity::Push)` makes this behave the same as

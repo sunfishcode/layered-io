@@ -15,7 +15,8 @@ pub trait WriteLayered: Write + Bufferable {
     /// Like [`Write::flush`], but has a status parameter describing
     /// the future of the stream:
     ///  - `Status::Ok(Activity::Active)`: do nothing
-    ///  - `Status::Ok(Activity::Push)`: flush any buffers and transmit all data
+    ///  - `Status::Ok(Activity::Push)`: flush any buffers and transmit all
+    ///    data
     ///  - `Status::End`: flush any buffers and declare the end of the stream
     ///
     /// Passing `Status::Ok(Activity::Push)` makes this behave the same as
@@ -95,6 +96,9 @@ pub fn default_write_all_vectored<Inner: Write + ?Sized>(
 /// This will be obviated by [rust-lang/rust#62726].
 ///
 /// [rust-lang/rust#62726]: https://github.com/rust-lang/rust/issues/62726.
+///
+/// Once this is removed, layered-io can become a `#![forbid(unsafe_code)]`
+/// crate.
 #[cfg(write_all_vectored)]
 fn advance<'a, 'b>(bufs: &'b mut [IoSlice<'a>], n: usize) -> &'b mut [IoSlice<'a>] {
     use std::slice;
