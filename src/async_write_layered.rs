@@ -20,6 +20,8 @@ pub trait AsyncWriteLayered: AsyncWrite + Bufferable {
     ///
     /// Passing `Status::Ok(Activity::Push)` makes this behave the same as
     /// `flush()`.
+    ///
+    /// [`Write::flush`]: std::io::Write::flush
     fn flush_with_status(
         self: Pin<&mut Self>,
         cx: &mut Context<'_>,
