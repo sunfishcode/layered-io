@@ -17,6 +17,10 @@ mod layered_writer;
 mod read_layered;
 mod slice_reader;
 mod status;
+#[cfg(feature = "tokio")]
+mod tokio_read_layered;
+#[cfg(feature = "tokio")]
+mod tokio_write_layered;
 mod write_layered;
 
 #[cfg(feature = "futures-io")]
@@ -36,6 +40,10 @@ pub use read_layered::{
 };
 pub use slice_reader::SliceReader;
 pub use status::{Activity, Status};
+#[cfg(feature = "tokio")]
+pub use tokio_read_layered::{tokio_default_poll_read, TokioReadLayered};
+#[cfg(feature = "tokio")]
+pub use tokio_write_layered::{tokio_default_poll_write_vectored, TokioWriteLayered};
 #[cfg(can_vector)]
 pub use write_layered::default_is_write_vectored;
 #[cfg(write_all_vectored)]
