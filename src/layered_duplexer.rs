@@ -87,8 +87,8 @@ impl<Inner: Read + Write> LayeredDuplexer<Inner> {
     }
 
     /// Consume this `LayeredDuplexer` and return the inner stream.
-    pub fn abandon_into_inner(self) -> Option<Inner> {
-        self.inner
+    pub fn abandon_into_inner(mut self) -> Option<Inner> {
+        self.inner.take()
     }
 }
 
@@ -381,6 +381,12 @@ impl<Inner: fmt::Debug> fmt::Debug for LayeredDuplexer<Inner> {
 
 fn stream_already_ended() -> io::Error {
     io::Error::new(io::ErrorKind::BrokenPipe, "stream has already ended")
+}
+
+impl<Inner> Drop for LayeredDuplexer<Inner> {
+    fn drop(&mut self) {
+        assert!(self.inner.is_none(), "stream was not closed or abandoned");
+    }
 }
 
 #[test]
