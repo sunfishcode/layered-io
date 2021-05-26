@@ -75,7 +75,10 @@ impl<Inner: Write> Write for LayeredWriter<Inner> {
     #[inline]
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         match &mut self.inner {
-            Some(inner) => inner.write(buf),
+            Some(inner) => inner.write(buf).map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            }),
             None => Err(stream_already_ended()),
         }
     }
@@ -83,7 +86,10 @@ impl<Inner: Write> Write for LayeredWriter<Inner> {
     #[inline]
     fn flush(&mut self) -> io::Result<()> {
         match &mut self.inner {
-            Some(inner) => inner.flush(),
+            Some(inner) => inner.flush().map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            }),
             None => Err(stream_already_ended()),
         }
     }
@@ -91,7 +97,10 @@ impl<Inner: Write> Write for LayeredWriter<Inner> {
     #[inline]
     fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
         match &mut self.inner {
-            Some(inner) => inner.write_vectored(bufs),
+            Some(inner) => inner.write_vectored(bufs).map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            }),
             None => Err(stream_already_ended()),
         }
     }
@@ -108,7 +117,10 @@ impl<Inner: Write> Write for LayeredWriter<Inner> {
     #[inline]
     fn write_all(&mut self, buf: &[u8]) -> io::Result<()> {
         match &mut self.inner {
-            Some(inner) => inner.write_all(buf),
+            Some(inner) => inner.write_all(buf).map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            }),
             None => Err(stream_already_ended()),
         }
     }
@@ -117,7 +129,10 @@ impl<Inner: Write> Write for LayeredWriter<Inner> {
     #[inline]
     fn write_all_vectored(&mut self, bufs: &mut [IoSlice<'_>]) -> io::Result<()> {
         match &mut self.inner {
-            Some(inner) => inner.write_all_vectored(bufs),
+            Some(inner) => inner.write_all_vectored(bufs).map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            }),
             None => Err(stream_already_ended()),
         }
     }
@@ -125,7 +140,10 @@ impl<Inner: Write> Write for LayeredWriter<Inner> {
     #[inline]
     fn write_fmt(&mut self, fmt: Arguments<'_>) -> io::Result<()> {
         match &mut self.inner {
-            Some(inner) => inner.write_fmt(fmt),
+            Some(inner) => inner.write_fmt(fmt).map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            }),
             None => Err(stream_already_ended()),
         }
     }

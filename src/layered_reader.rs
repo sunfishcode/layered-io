@@ -163,12 +163,18 @@ impl<Inner> Bufferable for LayeredReader<Inner> {
 impl<Inner: Read> Read for LayeredReader<Inner> {
     #[inline]
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        default_read(self, buf)
+        default_read(self, buf).map_err(|e| {
+            drop(self.inner.take().unwrap());
+            e
+        })
     }
 
     #[inline]
     fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
-        default_read_vectored(self, bufs)
+        default_read_vectored(self, bufs).map_err(|e| {
+            drop(self.inner.take().unwrap());
+            e
+        })
     }
 
     #[cfg(can_vector)]
@@ -182,18 +188,28 @@ impl<Inner: Read> Read for LayeredReader<Inner> {
 
     #[inline]
     fn read_to_end(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
-        default_read_to_end(self, buf)
+        default_read_to_end(self, buf).map_err(|e| {
+            drop(self.inner.take().unwrap());
+            e
+        })
     }
 
     #[inline]
     fn read_to_string(&mut self, buf: &mut String) -> io::Result<usize> {
-        default_read_to_string(self, buf)
+        default_read_to_string(self, buf).map_err(|e| {
+            drop(self.inner.take().unwrap());
+            e
+        })
     }
 
     #[inline]
     fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        default_read_exact_using_status(self, buf)?;
-        Ok(())
+        default_read_exact_using_status(self, buf)
+            .map(|_status| ())
+            .map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            })
     }
 }
 

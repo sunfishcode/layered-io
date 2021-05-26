@@ -169,12 +169,18 @@ impl<Inner: Read + Write> ReadLayered for LayeredDuplexer<Inner> {
 impl<Inner: Read + Write> Read for LayeredDuplexer<Inner> {
     #[inline]
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        default_read(self, buf)
+        default_read(self, buf).map_err(|e| {
+            drop(self.inner.take().unwrap());
+            e
+        })
     }
 
     #[inline]
     fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
-        default_read_vectored(self, bufs)
+        default_read_vectored(self, bufs).map_err(|e| {
+            drop(self.inner.take().unwrap());
+            e
+        })
     }
 
     #[cfg(can_vector)]
@@ -188,18 +194,28 @@ impl<Inner: Read + Write> Read for LayeredDuplexer<Inner> {
 
     #[inline]
     fn read_to_end(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
-        default_read_to_end(self, buf)
+        default_read_to_end(self, buf).map_err(|e| {
+            drop(self.inner.take().unwrap());
+            e
+        })
     }
 
     #[inline]
     fn read_to_string(&mut self, buf: &mut String) -> io::Result<usize> {
-        default_read_to_string(self, buf)
+        default_read_to_string(self, buf).map_err(|e| {
+            drop(self.inner.take().unwrap());
+            e
+        })
     }
 
     #[inline]
     fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        default_read_exact_using_status(self, buf)?;
-        Ok(())
+        default_read_exact_using_status(self, buf)
+            .map(|_status| ())
+            .map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            })
     }
 }
 
@@ -217,7 +233,10 @@ impl<Inner: Read + Write> Write for LayeredDuplexer<Inner> {
     #[inline]
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         match &mut self.inner {
-            Some(inner) => inner.write(buf),
+            Some(inner) => inner.write(buf).map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            }),
             None => Err(stream_already_ended()),
         }
     }
@@ -225,7 +244,10 @@ impl<Inner: Read + Write> Write for LayeredDuplexer<Inner> {
     #[inline]
     fn flush(&mut self) -> io::Result<()> {
         match &mut self.inner {
-            Some(inner) => inner.flush(),
+            Some(inner) => inner.flush().map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            }),
             None => Err(stream_already_ended()),
         }
     }
@@ -233,7 +255,10 @@ impl<Inner: Read + Write> Write for LayeredDuplexer<Inner> {
     #[inline]
     fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
         match &mut self.inner {
-            Some(inner) => inner.write_vectored(bufs),
+            Some(inner) => inner.write_vectored(bufs).map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            }),
             None => Err(stream_already_ended()),
         }
     }
@@ -250,7 +275,10 @@ impl<Inner: Read + Write> Write for LayeredDuplexer<Inner> {
     #[inline]
     fn write_all(&mut self, buf: &[u8]) -> io::Result<()> {
         match &mut self.inner {
-            Some(inner) => inner.write_all(buf),
+            Some(inner) => inner.write_all(buf).map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            }),
             None => Err(stream_already_ended()),
         }
     }
@@ -259,7 +287,10 @@ impl<Inner: Read + Write> Write for LayeredDuplexer<Inner> {
     #[inline]
     fn write_all_vectored(&mut self, bufs: &mut [IoSlice<'_>]) -> io::Result<()> {
         match &mut self.inner {
-            Some(inner) => inner.write_all_vectored(bufs),
+            Some(inner) => inner.write_all_vectored(bufs).map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            }),
             None => Err(stream_already_ended()),
         }
     }
@@ -267,7 +298,10 @@ impl<Inner: Read + Write> Write for LayeredDuplexer<Inner> {
     #[inline]
     fn write_fmt(&mut self, fmt: Arguments<'_>) -> io::Result<()> {
         match &mut self.inner {
-            Some(inner) => inner.write_fmt(fmt),
+            Some(inner) => inner.write_fmt(fmt).map_err(|e| {
+                drop(self.inner.take().unwrap());
+                e
+            }),
             None => Err(stream_already_ended()),
         }
     }
