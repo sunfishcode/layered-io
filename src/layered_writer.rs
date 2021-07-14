@@ -1,12 +1,17 @@
 use crate::{Bufferable, WriteLayered};
-#[cfg(not(windows))]
-use io_lifetimes::{AsFd, BorrowedFd};
 use std::{
     fmt::{self, Arguments},
     io::{self, IoSlice, Write},
 };
 #[cfg(windows)]
-use unsafe_io::os::windows::{AsHandleOrSocket, BorrowedHandleOrSocket};
+use unsafe_io::os::windows::{
+    AsHandleOrSocket, AsRawHandleOrSocket, BorrowedHandleOrSocket, RawHandleOrSocket,
+};
+#[cfg(not(windows))]
+use {
+    io_lifetimes::{AsFd, BorrowedFd},
+    unsafe_io::os::posish::{AsRawFd, RawFd},
+};
 
 /// Adapts a [`std::io::Write`] to implement [`WriteLayered`].
 pub struct LayeredWriter<Inner> {
@@ -173,12 +178,34 @@ impl<RW: terminal_io::WriteTerminal> terminal_io::WriteTerminal for LayeredWrite
 }
 
 #[cfg(not(windows))]
+impl<Inner: Write + AsRawFd> AsRawFd for LayeredWriter<Inner> {
+    #[inline]
+    fn as_raw_fd(&self) -> RawFd {
+        match &self.inner {
+            Some(inner) => inner.as_raw_fd(),
+            None => panic!("as_raw_fd() called on closed LayeredWriter"),
+        }
+    }
+}
+
+#[cfg(not(windows))]
 impl<Inner: Write + AsFd> AsFd for LayeredWriter<Inner> {
     #[inline]
     fn as_fd(&self) -> BorrowedFd<'_> {
         match &self.inner {
             Some(inner) => inner.as_fd(),
             None => panic!("as_fd() called on closed LayeredWriter"),
+        }
+    }
+}
+
+#[cfg(windows)]
+impl<Inner: Write + AsRawHandleOrSocket> AsRawHandleOrSocket for LayeredWriter<Inner> {
+    #[inline]
+    fn as_raw_handle_or_socket(&self) -> RawHandleOrSocket {
+        match &self.inner {
+            Some(inner) => inner.as_raw_handle_or_socket(),
+            None => panic!("as_raw_handle_or_socket() called on closed LayeredWriter"),
         }
     }
 }

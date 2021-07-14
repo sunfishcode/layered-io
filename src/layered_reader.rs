@@ -2,8 +2,6 @@ use crate::{
     default_read, default_read_exact_using_status, default_read_to_end, default_read_to_string,
     default_read_vectored, Bufferable, ReadLayered, Status,
 };
-#[cfg(not(windows))]
-use io_lifetimes::{AsFd, BorrowedFd};
 use std::{
     fmt,
     io::{self, IoSliceMut, Read},
@@ -11,7 +9,14 @@ use std::{
 #[cfg(feature = "terminal-io")]
 use terminal_io::ReadTerminal;
 #[cfg(windows)]
-use unsafe_io::os::windows::{AsHandleOrSocket, BorrowedHandleOrSocket};
+use unsafe_io::os::windows::{
+    AsHandleOrSocket, AsRawHandleOrSocket, BorrowedHandleOrSocket, RawHandleOrSocket,
+};
+#[cfg(not(windows))]
+use {
+    io_lifetimes::{AsFd, BorrowedFd},
+    unsafe_io::os::posish::{AsRawFd, RawFd},
+};
 
 /// Adapts an `Read` to implement `ReadLayered`.
 pub struct LayeredReader<Inner> {
@@ -235,12 +240,34 @@ impl<RW: terminal_io::ReadTerminal> terminal_io::ReadTerminal for LayeredReader<
 }
 
 #[cfg(not(windows))]
+impl<Inner: Read + AsRawFd> AsRawFd for LayeredReader<Inner> {
+    #[inline]
+    fn as_raw_fd(&self) -> RawFd {
+        match &self.inner {
+            Some(inner) => inner.as_raw_fd(),
+            None => panic!("as_raw_fd() called on closed LayeredReader"),
+        }
+    }
+}
+
+#[cfg(not(windows))]
 impl<Inner: Read + AsFd> AsFd for LayeredReader<Inner> {
     #[inline]
     fn as_fd(&self) -> BorrowedFd<'_> {
         match &self.inner {
             Some(inner) => inner.as_fd(),
             None => panic!("as_fd() called on closed LayeredReader"),
+        }
+    }
+}
+
+#[cfg(windows)]
+impl<Inner: Read + AsRawHandleOrSocket> AsRawHandleOrSocket for LayeredReader<Inner> {
+    #[inline]
+    fn as_raw_handle_or_socket(&self) -> RawHandleOrSocket {
+        match &self.inner {
+            Some(inner) => inner.as_raw_handle_or_socket(),
+            None => panic!("as_raw_handle_or_socket() called on closed LayeredReader"),
         }
     }
 }
