@@ -2,17 +2,16 @@ use crate::{
     default_read, default_read_exact_using_status, default_read_to_end, default_read_to_string,
     default_read_vectored, Bufferable, ReadLayered, Status,
 };
+#[cfg(not(windows))]
+use io_lifetimes::{AsFd, BorrowedFd};
 use std::{
     fmt,
     io::{self, IoSliceMut, Read},
 };
 #[cfg(feature = "terminal-io")]
 use terminal_io::ReadTerminal;
-#[cfg(not(windows))]
-use unsafe_io::os::posish::{AsRawFd, RawFd};
 #[cfg(windows)]
-use unsafe_io::os::windows::{AsRawHandleOrSocket, RawHandleOrSocket};
-use unsafe_io::OwnsRaw;
+use unsafe_io::os::windows::{AsHandleOrSocket, BorrowedHandleOrSocket};
 
 /// Adapts an `Read` to implement `ReadLayered`.
 pub struct LayeredReader<Inner> {
@@ -24,7 +23,7 @@ pub struct LayeredReader<Inner> {
 #[cfg(feature = "terminal-io")]
 impl<Inner: ReadTerminal> LayeredReader<Inner> {
     /// Construct a new `LayeredReader` which wraps `inner`, which implements
-    /// `AsUnsafeHandle`, and automatically sets the `line_by_line` setting if
+    /// `ReadTerminal`, and automatically sets the `line_by_line` setting if
     /// appropriate.
     pub fn maybe_terminal(inner: Inner) -> Self {
         let line_by_line = inner.is_line_by_line();
@@ -236,29 +235,26 @@ impl<RW: terminal_io::ReadTerminal> terminal_io::ReadTerminal for LayeredReader<
 }
 
 #[cfg(not(windows))]
-impl<Inner: Read + AsRawFd + OwnsRaw> AsRawFd for LayeredReader<Inner> {
+impl<Inner: Read + AsFd> AsFd for LayeredReader<Inner> {
     #[inline]
-    fn as_raw_fd(&self) -> RawFd {
+    fn as_fd(&self) -> BorrowedFd<'_> {
         match &self.inner {
-            Some(inner) => inner.as_raw_fd(),
-            None => panic!("as_raw_fd() called on closed LayeredReader"),
+            Some(inner) => inner.as_fd(),
+            None => panic!("as_fd() called on closed LayeredReader"),
         }
     }
 }
 
 #[cfg(windows)]
-impl<Inner: Read + AsRawHandleOrSocket + OwnsRaw> AsRawHandleOrSocket for LayeredReader<Inner> {
+impl<Inner: Read + AsHandleOrSocket> AsHandleOrSocket for LayeredReader<Inner> {
     #[inline]
-    fn as_raw_handle_or_socket(&self) -> RawHandleOrSocket {
+    fn as_handle_or_socket(&self) -> BorrowedHandleOrSocket<'_> {
         match &self.inner {
-            Some(inner) => inner.as_raw_handle_or_socket(),
-            None => panic!("as_raw_handle_or_socket() called on closed LayeredReader"),
+            Some(inner) => inner.as_handle_or_socket(),
+            None => panic!("as_handle_or_socket() called on closed LayeredReader"),
         }
     }
 }
-
-// Safety: `LayeredReader` implements `OwnsRaw` if `Inner` does.
-unsafe impl<Inner: Read + OwnsRaw> OwnsRaw for LayeredReader<Inner> {}
 
 impl<Inner: fmt::Debug> fmt::Debug for LayeredReader<Inner> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -1,13 +1,12 @@
 use crate::{Bufferable, WriteLayered};
+#[cfg(not(windows))]
+use io_lifetimes::{AsFd, BorrowedFd};
 use std::{
     fmt::{self, Arguments},
     io::{self, IoSlice, Write},
 };
-#[cfg(not(windows))]
-use unsafe_io::os::posish::{AsRawFd, RawFd};
 #[cfg(windows)]
-use unsafe_io::os::windows::{AsRawHandleOrSocket, RawHandleOrSocket};
-use unsafe_io::OwnsRaw;
+use unsafe_io::os::windows::{AsHandleOrSocket, BorrowedHandleOrSocket};
 
 /// Adapts a [`std::io::Write`] to implement [`WriteLayered`].
 pub struct LayeredWriter<Inner> {
@@ -174,29 +173,26 @@ impl<RW: terminal_io::WriteTerminal> terminal_io::WriteTerminal for LayeredWrite
 }
 
 #[cfg(not(windows))]
-impl<Inner: Write + AsRawFd> AsRawFd for LayeredWriter<Inner> {
+impl<Inner: Write + AsFd> AsFd for LayeredWriter<Inner> {
     #[inline]
-    fn as_raw_fd(&self) -> RawFd {
+    fn as_fd(&self) -> BorrowedFd<'_> {
         match &self.inner {
-            Some(inner) => inner.as_raw_fd(),
-            None => panic!("as_raw_fd() called on closed LayeredWriter"),
+            Some(inner) => inner.as_fd(),
+            None => panic!("as_fd() called on closed LayeredWriter"),
         }
     }
 }
 
 #[cfg(windows)]
-impl<Inner: Write + AsRawHandleOrSocket> AsRawHandleOrSocket for LayeredWriter<Inner> {
+impl<Inner: Write + AsHandleOrSocket> AsHandleOrSocket for LayeredWriter<Inner> {
     #[inline]
-    fn as_raw_handle_or_socket(&self) -> RawHandleOrSocket {
+    fn as_handle_or_socket(&self) -> BorrowedHandleOrSocket<'_> {
         match &self.inner {
-            Some(inner) => inner.as_raw_handle_or_socket(),
-            None => panic!("as_raw_handle_or_socket() called on closed LayeredWriter"),
+            Some(inner) => inner.as_handle_or_socket(),
+            None => panic!("as_handle_or_socket() called on closed LayeredWriter"),
         }
     }
 }
-
-// Safety: `LayeredWriter` implements `OwnsRaw` if `Inner` does.
-unsafe impl<Inner: Write + OwnsRaw> OwnsRaw for LayeredWriter<Inner> {}
 
 impl<Inner: fmt::Debug> fmt::Debug for LayeredWriter<Inner> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

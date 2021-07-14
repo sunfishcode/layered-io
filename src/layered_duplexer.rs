@@ -9,11 +9,10 @@ use std::{
 };
 #[cfg(feature = "terminal-io")]
 use terminal_io::DuplexTerminal;
-#[cfg(not(windows))]
-use unsafe_io::os::posish::{AsRawReadWriteFd, RawFd};
 #[cfg(windows)]
-use unsafe_io::os::windows::{AsRawReadWriteHandleOrSocket, RawHandleOrSocket};
-use unsafe_io::OwnsRaw;
+use unsafe_io::os::windows::{AsReadWriteHandleOrSocket, BorrowedHandleOrSocket};
+#[cfg(not(windows))]
+use {io_lifetimes::BorrowedFd, unsafe_io::os::posish::AsReadWriteFd};
 
 /// Adapts an `Read` + `Write` to implement `DuplexLayered`.
 pub struct LayeredDuplexer<Inner> {
@@ -25,7 +24,7 @@ pub struct LayeredDuplexer<Inner> {
 #[cfg(feature = "terminal-io")]
 impl<Inner: DuplexTerminal> LayeredDuplexer<Inner> {
     /// Construct a new `LayeredDuplexer` which wraps `inner`, which implements
-    /// `AsUnsafeHandle`, and automatically sets the `line_by_line` setting if
+    /// `DuplexTerminal`, and automatically sets the `line_by_line` setting if
     /// appropriate.
     pub fn maybe_terminal(inner: Inner) -> Self {
         let line_by_line = inner.is_line_by_line();
@@ -363,47 +362,44 @@ impl<RW: terminal_io::DuplexTerminal> terminal_io::WriteTerminal for LayeredDupl
 impl<RW: terminal_io::DuplexTerminal> terminal_io::DuplexTerminal for LayeredDuplexer<RW> {}
 
 #[cfg(not(windows))]
-impl<Inner: Duplex + AsRawReadWriteFd> AsRawReadWriteFd for LayeredDuplexer<Inner> {
+impl<Inner: Duplex + AsReadWriteFd> AsReadWriteFd for LayeredDuplexer<Inner> {
     #[inline]
-    fn as_raw_read_fd(&self) -> RawFd {
+    fn as_read_fd(&self) -> BorrowedFd<'_> {
         match &self.inner {
-            Some(inner) => inner.as_raw_read_fd(),
-            None => panic!("as_raw_read_fd() called on closed LayeredDuplexer"),
+            Some(inner) => inner.as_read_fd(),
+            None => panic!("as_read_fd() called on closed LayeredDuplexer"),
         }
     }
 
     #[inline]
-    fn as_raw_write_fd(&self) -> RawFd {
+    fn as_write_fd(&self) -> BorrowedFd<'_> {
         match &self.inner {
-            Some(inner) => inner.as_raw_write_fd(),
-            None => panic!("as_raw_write_fd() called on closed LayeredDuplexer"),
+            Some(inner) => inner.as_write_fd(),
+            None => panic!("as_write_fd() called on closed LayeredDuplexer"),
         }
     }
 }
 
 #[cfg(windows)]
-impl<Inner: Duplex + AsRawReadWriteHandleOrSocket> AsRawReadWriteHandleOrSocket
+impl<Inner: Duplex + AsReadWriteHandleOrSocket> AsReadWriteHandleOrSocket
     for LayeredDuplexer<Inner>
 {
     #[inline]
-    fn as_raw_read_handle_or_socket(&self) -> RawHandleOrSocket {
+    fn as_read_handle_or_socket(&self) -> BorrowedHandleOrSocket<'_> {
         match &self.inner {
-            Some(inner) => inner.as_raw_read_handle_or_socket(),
-            None => panic!("as_raw_read_handle_or_socket() called on closed LayeredDuplexer"),
+            Some(inner) => inner.as_read_handle_or_socket(),
+            None => panic!("as_read_handle_or_socket() called on closed LayeredDuplexer"),
         }
     }
 
     #[inline]
-    fn as_raw_write_handle_or_socket(&self) -> RawHandleOrSocket {
+    fn as_write_handle_or_socket(&self) -> BorrowedHandleOrSocket<'_> {
         match &self.inner {
-            Some(inner) => inner.as_raw_write_handle_or_socket(),
-            None => panic!("as_raw_write_handle_or_socket() called on closed LayeredDuplexer"),
+            Some(inner) => inner.as_write_handle_or_socket(),
+            None => panic!("as_write_handle_or_socket() called on closed LayeredDuplexer"),
         }
     }
 }
-
-// Safety: `LayeredDuplexer` implements `OwnsRaw` if `Inner` does.
-unsafe impl<Inner: Duplex + OwnsRaw> OwnsRaw for LayeredDuplexer<Inner> {}
 
 impl<Inner: fmt::Debug> fmt::Debug for LayeredDuplexer<Inner> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
