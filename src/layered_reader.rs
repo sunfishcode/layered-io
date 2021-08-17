@@ -15,7 +15,7 @@ use unsafe_io::os::windows::{
 #[cfg(not(windows))]
 use {
     io_lifetimes::{AsFd, BorrowedFd},
-    unsafe_io::os::posish::{AsRawFd, RawFd},
+    unsafe_io::os::rsix::{AsRawFd, RawFd},
 };
 
 /// Adapts an `Read` to implement `ReadLayered`.

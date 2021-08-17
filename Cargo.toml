@@ -14,12 +14,12 @@ exclude = ["/.github"]
 rustc_version = "0.4.0"
 
 [dependencies]
-duplex = "0.5.0"
-unsafe-io = { version = "0.7.1", features = ["os_pipe"] }
-terminal-io = { version = "0.5.0", optional = true }
+duplex = "0.6.0"
+unsafe-io = { version = "0.8.0", features = ["os_pipe"] }
+terminal-io = { version = "0.6.0", optional = true }
 futures-io = { version = "0.3.12", optional = true }
 tokio = { version = "1.8.1", optional = true }
-io-lifetimes = { version = "0.2.0", features = ["os_pipe"] }
+io-lifetimes = { version = "0.2.2", default-features = false, features = ["os_pipe"] }
 
 [badges]
 maintenance = { status = "actively-developed" }
