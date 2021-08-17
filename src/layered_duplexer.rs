@@ -3,10 +3,8 @@ use crate::{
     default_read_vectored, Bufferable, ReadLayered, Status, WriteLayered,
 };
 use duplex::Duplex;
-use std::{
-    fmt::{self, Arguments},
-    io::{self, IoSlice, IoSliceMut, Read, Write},
-};
+use std::fmt::{self, Arguments};
+use std::io::{self, IoSlice, IoSliceMut, Read, Write};
 #[cfg(feature = "terminal-io")]
 use terminal_io::DuplexTerminal;
 #[cfg(windows)]

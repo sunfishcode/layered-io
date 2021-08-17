@@ -1,8 +1,6 @@
 use crate::{Activity, Bufferable, Status};
-use std::{
-    convert::TryInto,
-    io::{self, IoSlice, Write},
-};
+use std::convert::TryInto;
+use std::io::{self, IoSlice, Write};
 
 /// An extension of [`std::io::Write`], but adds a `close` function to allow
 /// the stream to be closed and any outstanding errors to be reported, without

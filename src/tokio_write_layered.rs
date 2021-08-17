@@ -1,10 +1,8 @@
 use crate::{Activity, Bufferable, Status};
-use std::{
-    io::{self, IoSlice},
-    ops::DerefMut,
-    pin::Pin,
-    task::{Context, Poll},
-};
+use std::io::{self, IoSlice};
+use std::ops::DerefMut;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 use tokio::io::AsyncWrite;
 
 /// An extension of [`std::io::Write`], but adds a `close` function to allow

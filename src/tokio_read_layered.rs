@@ -1,9 +1,7 @@
 use super::{Bufferable, Status};
-use std::{
-    io,
-    pin::Pin,
-    task::{Context, Poll},
-};
+use std::io;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 use tokio::io::{AsyncRead, ReadBuf};
 
 /// An extension of [`AsyncRead`], with `read_with_status` and

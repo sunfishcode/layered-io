@@ -1,8 +1,6 @@
 use crate::{Bufferable, WriteLayered};
-use std::{
-    fmt::{self, Arguments},
-    io::{self, IoSlice, Write},
-};
+use std::fmt::{self, Arguments};
+use std::io::{self, IoSlice, Write};
 #[cfg(windows)]
 use unsafe_io::os::windows::{
     AsHandleOrSocket, AsRawHandleOrSocket, BorrowedHandleOrSocket, RawHandleOrSocket,

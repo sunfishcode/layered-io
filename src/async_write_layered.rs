@@ -1,11 +1,9 @@
 use crate::{Activity, Bufferable, Status};
 use futures_io::AsyncWrite;
-use std::{
-    io::{self, IoSlice},
-    ops::DerefMut,
-    pin::Pin,
-    task::{Context, Poll},
-};
+use std::io::{self, IoSlice};
+use std::ops::DerefMut;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 
 /// An extension of [`std::io::Write`], but adds a `close` function to allow
 /// the stream to be closed and any outstanding errors to be reported, without

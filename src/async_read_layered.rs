@@ -1,11 +1,9 @@
 use super::{Bufferable, Status};
 use crate::to_std_io_read_result;
 use futures_io::AsyncRead;
-use std::{
-    io::{self, IoSliceMut},
-    pin::Pin,
-    task::{Context, Poll},
-};
+use std::io::{self, IoSliceMut};
+use std::pin::Pin;
+use std::task::{Context, Poll};
 
 /// An extension of [`AsyncRead`], with `read_with_status` and
 /// `read_vectored_with_status` which return status information and zero is not

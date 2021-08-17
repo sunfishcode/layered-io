@@ -1,4 +1,6 @@
-use std::{convert::TryInto, ops::DerefMut, pin::Pin};
+use std::convert::TryInto;
+use std::ops::DerefMut;
+use std::pin::Pin;
 
 /// A trait to help with buffering on top of `ReadLayered` and `WriteLayered`.
 pub trait Bufferable {

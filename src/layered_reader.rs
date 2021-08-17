@@ -2,10 +2,8 @@ use crate::{
     default_read, default_read_exact_using_status, default_read_to_end, default_read_to_string,
     default_read_vectored, Bufferable, ReadLayered, Status,
 };
-use std::{
-    fmt,
-    io::{self, IoSliceMut, Read},
-};
+use std::fmt;
+use std::io::{self, IoSliceMut, Read};
 #[cfg(feature = "terminal-io")]
 use terminal_io::ReadTerminal;
 #[cfg(windows)]
