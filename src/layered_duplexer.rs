@@ -3,19 +3,19 @@ use crate::{
     default_read_vectored, Bufferable, ReadLayered, Status, WriteLayered,
 };
 use duplex::Duplex;
-use std::fmt::{self, Arguments};
-use std::io::{self, IoSlice, IoSliceMut, Read, Write};
-#[cfg(feature = "terminal-io")]
-use terminal_io::DuplexTerminal;
 #[cfg(windows)]
 use io_extras::os::windows::{
     AsRawReadWriteHandleOrSocket, AsReadWriteHandleOrSocket, BorrowedHandleOrSocket,
     RawHandleOrSocket,
 };
+use std::fmt::{self, Arguments};
+use std::io::{self, IoSlice, IoSliceMut, Read, Write};
+#[cfg(feature = "terminal-io")]
+use terminal_io::DuplexTerminal;
 #[cfg(not(windows))]
 use {
-    io_lifetimes::BorrowedFd,
     io_extras::os::rustix::{AsRawReadWriteFd, AsReadWriteFd, RawFd},
+    io_lifetimes::BorrowedFd,
 };
 
 /// Adapts an `Read` + `Write` to implement `DuplexLayered`.

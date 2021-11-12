@@ -2,18 +2,18 @@ use crate::{
     default_read, default_read_exact_using_status, default_read_to_end, default_read_to_string,
     default_read_vectored, Bufferable, ReadLayered, Status,
 };
-use std::fmt;
-use std::io::{self, IoSliceMut, Read};
-#[cfg(feature = "terminal-io")]
-use terminal_io::ReadTerminal;
 #[cfg(windows)]
 use io_extras::os::windows::{
     AsHandleOrSocket, AsRawHandleOrSocket, BorrowedHandleOrSocket, RawHandleOrSocket,
 };
+use std::fmt;
+use std::io::{self, IoSliceMut, Read};
+#[cfg(feature = "terminal-io")]
+use terminal_io::ReadTerminal;
 #[cfg(not(windows))]
 use {
-    io_lifetimes::{AsFd, BorrowedFd},
     io_extras::os::rustix::{AsRawFd, RawFd},
+    io_lifetimes::{AsFd, BorrowedFd},
 };
 
 /// Adapts an `Read` to implement `ReadLayered`.

@@ -1,14 +1,14 @@
 use crate::{Bufferable, WriteLayered};
-use std::fmt::{self, Arguments};
-use std::io::{self, IoSlice, Write};
 #[cfg(windows)]
 use io_extras::os::windows::{
     AsHandleOrSocket, AsRawHandleOrSocket, BorrowedHandleOrSocket, RawHandleOrSocket,
 };
+use std::fmt::{self, Arguments};
+use std::io::{self, IoSlice, Write};
 #[cfg(not(windows))]
 use {
-    io_lifetimes::{AsFd, BorrowedFd},
     io_extras::os::rustix::{AsRawFd, RawFd},
+    io_lifetimes::{AsFd, BorrowedFd},
 };
 
 /// Adapts a [`std::io::Write`] to implement [`WriteLayered`].
