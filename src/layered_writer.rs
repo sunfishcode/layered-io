@@ -2,13 +2,13 @@ use crate::{Bufferable, WriteLayered};
 use std::fmt::{self, Arguments};
 use std::io::{self, IoSlice, Write};
 #[cfg(windows)]
-use unsafe_io::os::windows::{
+use io_extras::os::windows::{
     AsHandleOrSocket, AsRawHandleOrSocket, BorrowedHandleOrSocket, RawHandleOrSocket,
 };
 #[cfg(not(windows))]
 use {
     io_lifetimes::{AsFd, BorrowedFd},
-    unsafe_io::os::rsix::{AsRawFd, RawFd},
+    io_extras::os::rustix::{AsRawFd, RawFd},
 };
 
 /// Adapts a [`std::io::Write`] to implement [`WriteLayered`].

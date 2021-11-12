@@ -8,14 +8,14 @@ use std::io::{self, IoSlice, IoSliceMut, Read, Write};
 #[cfg(feature = "terminal-io")]
 use terminal_io::DuplexTerminal;
 #[cfg(windows)]
-use unsafe_io::os::windows::{
+use io_extras::os::windows::{
     AsRawReadWriteHandleOrSocket, AsReadWriteHandleOrSocket, BorrowedHandleOrSocket,
     RawHandleOrSocket,
 };
 #[cfg(not(windows))]
 use {
     io_lifetimes::BorrowedFd,
-    unsafe_io::os::rsix::{AsRawReadWriteFd, AsReadWriteFd, RawFd},
+    io_extras::os::rustix::{AsRawReadWriteFd, AsReadWriteFd, RawFd},
 };
 
 /// Adapts an `Read` + `Write` to implement `DuplexLayered`.
