@@ -97,11 +97,11 @@ impl Bufferable for std::io::Cursor<&mut [u8]> {
 impl<P> Bufferable for Pin<P>
 where
     P: DerefMut + Unpin,
-    P::Target: Bufferable,
+    P::Target: Bufferable + Unpin,
 {
     #[inline]
     fn abandon(&mut self) {
-        self.as_mut().abandon()
+        Pin::get_mut(self.as_mut()).abandon()
     }
 
     #[inline]
