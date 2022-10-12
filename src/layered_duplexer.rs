@@ -18,7 +18,9 @@ use {
     io_lifetimes::BorrowedFd,
 };
 
-/// Adapts an `Read` + `Write` to implement `DuplexLayered`.
+/// Adapts an `Read` + `Write` to implement [`HalfDuplexLayered`].
+///
+/// [`HalfDuplexLayered`]: crate::HalfDuplexLayered
 pub struct LayeredDuplexer<Inner> {
     inner: Option<Inner>,
     eos_as_push: bool,

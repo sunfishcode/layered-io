@@ -16,7 +16,7 @@ use {
     io_lifetimes::{AsFd, BorrowedFd},
 };
 
-/// Adapts an `Read` to implement `ReadLayered`.
+/// Adapts an `Read` to implement [`ReadLayered`].
 pub struct LayeredReader<Inner> {
     inner: Option<Inner>,
     eos_as_push: bool,

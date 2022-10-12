@@ -1,7 +1,7 @@
 use crate::{Bufferable, ReadLayered, Status};
 use std::io::{self, IoSliceMut, Read};
 
-/// Adapts an `&[u8]` to implement `ReadLayered`.
+/// Adapts an `&[u8]` to implement [`ReadLayered`].
 pub struct SliceReader<'slice> {
     slice: &'slice [u8],
 }
