@@ -54,6 +54,6 @@ impl<W: AsyncWriteLayered + Unpin> AsyncWriteLayered for &mut W {}
 impl<P> AsyncWriteLayered for Pin<P>
 where
     P: DerefMut + Unpin,
-    P::Target: AsyncWriteLayered,
+    P::Target: AsyncWriteLayered + Unpin,
 {
 }

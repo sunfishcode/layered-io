@@ -54,6 +54,6 @@ impl<W: TokioWriteLayered + Unpin> TokioWriteLayered for &mut W {}
 impl<P> TokioWriteLayered for Pin<P>
 where
     P: DerefMut + Unpin,
-    P::Target: TokioWriteLayered,
+    P::Target: TokioWriteLayered + Unpin,
 {
 }

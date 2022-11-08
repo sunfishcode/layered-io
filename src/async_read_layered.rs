@@ -80,7 +80,7 @@ impl<R: AsyncReadLayered + Unpin> AsyncReadLayered for Box<R> {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<io::Result<(usize, Status)>> {
-        self.as_mut().poll_read_with_status(cx, buf)
+        Pin::new(&mut **self).poll_read_with_status(cx, buf)
     }
 
     #[inline]
@@ -89,12 +89,12 @@ impl<R: AsyncReadLayered + Unpin> AsyncReadLayered for Box<R> {
         cx: &mut Context<'_>,
         bufs: &mut [IoSliceMut<'_>],
     ) -> Poll<io::Result<(usize, Status)>> {
-        self.as_mut().poll_read_vectored_with_status(cx, bufs)
+        Pin::new(&mut **self).poll_read_vectored_with_status(cx, bufs)
     }
 
     #[inline]
     fn minimum_buffer_size(&self) -> usize {
-        self.as_ref().minimum_buffer_size()
+        Pin::new(&**self).minimum_buffer_size()
     }
 }
 

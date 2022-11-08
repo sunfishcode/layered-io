@@ -43,12 +43,12 @@ impl<R: TokioReadLayered + Unpin> TokioReadLayered for Box<R> {
         cx: &mut Context<'_>,
         buf: &mut ReadBuf,
     ) -> Poll<io::Result<((), Status)>> {
-        self.as_mut().poll_read_with_status(cx, buf)
+        Pin::new(&mut **self).poll_read_with_status(cx, buf)
     }
 
     #[inline]
     fn minimum_buffer_size(&self) -> usize {
-        self.as_ref().minimum_buffer_size()
+        Pin::new(&**self).minimum_buffer_size()
     }
 }
 
