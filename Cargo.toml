@@ -11,7 +11,7 @@ repository = "https://github.com/sunfishcode/layered-io"
 exclude = ["/.github"]
 
 [dependencies]
-duplex = "0.14.0"
+duplex = "0.15.0"
 io-extras = { version = "0.17.0", features = ["os_pipe"] }
 terminal-io = { version = "0.16.0", optional = true }
 futures-io = { version = "0.3.12", optional = true }
