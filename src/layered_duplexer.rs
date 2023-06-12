@@ -15,7 +15,7 @@ use terminal_io::DuplexTerminal;
 #[cfg(not(windows))]
 use {
     io_extras::os::rustix::{AsRawReadWriteFd, AsReadWriteFd, RawFd},
-    io_lifetimes::BorrowedFd,
+    std::os::fd::BorrowedFd,
 };
 
 /// Adapts an `Read` + `Write` to implement [`HalfDuplexLayered`].

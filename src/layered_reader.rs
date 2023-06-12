@@ -13,7 +13,7 @@ use terminal_io::ReadTerminal;
 #[cfg(not(windows))]
 use {
     io_extras::os::rustix::{AsRawFd, RawFd},
-    io_lifetimes::{AsFd, BorrowedFd},
+    std::os::fd::{AsFd, BorrowedFd},
 };
 
 /// Adapts an `Read` to implement [`ReadLayered`].
