@@ -1,5 +1,4 @@
 use crate::{Activity, Bufferable, Status};
-use std::convert::TryInto;
 use std::io::{self, IoSlice, Write};
 
 /// An extension of [`std::io::Write`], but adds a `close` function to allow
